@@ -7,15 +7,30 @@ declare -a queries=('bunny' 'rabbit' 'cute bunny' 'bunny gif')
 # Number of items to search for (rounds now to a multiple of 8)
 nitems=100
 
+
+# Command line arguments
+CACHE=true
+eval set -- $(getopt -o f -l force-refresh -- "$@")
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-f | --force-refresh) CACHE=false;;
+		(--) shift; break;;
+		(-*) echo "$0: unrecognized option $1" 1>&2; exit 1;;
+		(*) break;;
+	esac
+	shift
+done
+
+
 # Replace spaces with URL escape characters
 for ((i = 0; i < ${#queries[@]}; i++)); do
 	queries["$i"]=$(echo "${queries[$i]}" | sed -e 's/ /%20/g')
 done
 
 # add for other escape sequences
-#-e 's/"/%22/g' \
-#-e 's/#/%23/g' \
-#-e 's/%/%25/g' )
+#-e 's/"/%22/g'
+#-e 's/#/%23/g'
+#-e 's/%/%25/g'
 
 #echo ${queries[@]}
 
@@ -24,8 +39,16 @@ done
 # Get image URLs
 for query in ${queries[@]}; do
 	printf "Retrieving search results for %s..." $query
+	i=0
+
+	# Cached results
+	if [ $CACHE == true -a -f queries/"$query".txt ]; then
+		printf "(cached)\n"
+		continue
+	fi
+
 	urls=""
-	for ((i = 0; i < nitems; i+=8)); do
+	for ((; i < nitems; i+=8)); do
 		# Loading percent
 		percent=$(bc <<< "scale = 3; $i/$nitems*100" | awk -F. '{print $1}')
 		printf "%.0f%%" $percent
@@ -42,9 +65,8 @@ for query in ${queries[@]}; do
 			printf "\b\b\b"
 		fi
 	done
-	echo "$urls" | sed 's/ /\n/g' > queries/query-"$query".txt
 
-	# Clean up loading bar
+	echo "$urls" | sed 's/ /\n/g' > queries/"$query".txt
 	printf "100%%\n"
 done
 
