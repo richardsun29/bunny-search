@@ -16,10 +16,19 @@ done
 #-e 's/#/%23/g' \
 #-e 's/%/%25/g' )
 
-echo ${queries[@]}
+#echo ${queries[@]}
 
 #curl -s "http://ajax.googleapis.com/ajax/services/search/images?q=cute%20bunny&v=1.0&start=0&rsz=8" | sed 's/,/\n/g' | grep unescapedUrl | awk -F'"' '{print $4}'
 
-
+# Get image URLs
+for query in ${queries[@]}; do
+	urls=""
+	for ((i = 0; i < nitems; i+=8)); do
+		urls+=$(curl -s "http://ajax.googleapis.com/ajax/services/search/images?q=$query&v=1.0&start=$i&rsz=8" | 
+				sed 's/,/\n/g' | grep unescapedUrl | awk -F'"' '{print $4}')
+		urls+=" "
+	done
+	echo "$urls" | sed 's/ /\n/g' > queries/query-"$query".txt
+done
 
 
