@@ -4,11 +4,8 @@
 declare -a queries=('bunny' 'rabbit' 'cute bunny' 'bunny gif')
 #declare -a queries=('bunny')
 
-# Number of items to search for
-# Rounds to a multiple of 8
-# Maximum: 64
-nitems=100
-[ "$nitems" -gt 64 ] && nitems=64
+# Number of items to search for (max: 64)
+nitems=64
 
 # Set up working directory
 cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)"
@@ -16,8 +13,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)"
 
 HELP() {
 echo "Usage: geturls.sh [OPTIONS] [QUERY] ... 
-Retrieve a lists of URLs for each query.
-Options:
+Retrieve a lists of URLs for each QUERY.
+
+Mandatory arguments to long options are mandatory for short options too.
+  -c, --count=NUM           Number of results for each query (max: 64)
   -f, --force-refresh       Overwrite cached results
   -h, --help                Show this help text
 "
@@ -25,13 +24,25 @@ Options:
 
 # Command line arguments
 USE_CACHE=true
-if ! options=$(getopt -o fh -l force-refresh,help -- "$@"); then
+if ! options=$(getopt -o c:fh -l count:,force-refresh,help -- "$@"); then
 	HELP
 	exit 1;
 fi
 eval set -- $options
 while [ $# -gt 0 ]; do
 	case "$1" in
+		-c | --count) 
+			nitems="$2"
+			shift
+			if [[ ! $nitems =~ ^[0-9]+$ ]]; then
+				echo "geturls: invalid results count: $nitems" >&2
+				exit 1
+			fi
+			if [[ $nitems -gt 64 ]]; then
+				echo "--count: Maximum number of results is 64." >&2
+				exit 1
+			fi
+			;;
 		-f | --force-refresh) USE_CACHE=false;;
 		-h | --help) HELP; exit 0;;
 		(--) ;;
@@ -46,11 +57,6 @@ done
 for ((i = 0; i < ${#queries[@]}; i++)); do
 	queries["$i"]=$(echo "${queries[$i]}" | sed -e 's/ /%20/g')
 done
-
-# add for other escape sequences
-#-e 's/"/%22/g'
-#-e 's/#/%23/g'
-#-e 's/%/%25/g'
 
 
 # Returns Google Search API's response
