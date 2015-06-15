@@ -1,14 +1,10 @@
 #!/bin/bash
 
 # Array of queries to search
-declare -a queries=('bunny' 'rabbit' 'cute bunny' 'bunny gif')
-#declare -a queries=('bunny')
-
-# Number of items to search for (max: 64)
-nitems=64
+#declare -a queries=('bunny' 'rabbit' 'cute bunny' 'bunny gif')
 
 # Set up working directory
-cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)"
+cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)" # pwd -> git repo's root
 ! [ -d "queries/" ] && mkdir queries/
 
 HELP() {
@@ -24,35 +20,41 @@ Mandatory arguments to long options are mandatory for short options too.
 
 # Command line arguments
 USE_CACHE=true
+nitems=64
 if ! options=$(getopt -o c:fh -l count:,force-refresh,help -- "$@"); then
 	HELP
 	exit 1;
 fi
 eval set -- $options
+
 while [ $# -gt 0 ]; do
 	case "$1" in
 		-c | --count) 
 			nitems="$2"
 			shift
 			if [[ ! $nitems =~ ^[0-9]+$ ]]; then
-				echo "geturls: invalid results count: $nitems" >&2
+				echo "geturls: --count: invalid results count: $nitems" >&2
 				exit 1
 			fi
 			if [[ $nitems -gt 64 ]]; then
-				echo "--count: Maximum number of results is 64." >&2
+				echo "geturls: --count: Maximum number of results is 64." >&2
 				exit 1
 			fi
 			;;
 		-f | --force-refresh) USE_CACHE=false;;
 		-h | --help) HELP; exit 0;;
 		(--) ;;
-		(-*) echo "$0: unrecognized option $1" 1>&2; exit 1;;
+		(-*) echo "$0: unrecognized option $1" >&2; exit 1;;
 		(*) queries[${#queries[@]}]="$1";;
 	esac
 	shift
 done
 
 
+if [ ${#queries[@]} -eq 0 ]; then
+	echo "geturls: no queries. Exiting." >&2
+	exit 1
+fi
 # Replace spaces with URL escape characters
 for ((i = 0; i < ${#queries[@]}; i++)); do
 	queries["$i"]=$(echo "${queries[$i]}" | sed -e 's/ /%20/g')
@@ -76,10 +78,10 @@ for query in ${queries[@]}; do
 	# Cache results
 	if [[ "$USE_CACHE" = "true" && -f queries/"$query".txt ]]; then
 		i=$(wc -l queries/"$query".txt 2>/dev/null | awk '{print $1}')
-		cached_results=" ($i cached)"
+		cached_results="($i cached)"
 	else
-		i=0
 		rm -f queries/"$query".txt 2>/dev/null
+		i=0
 		cached_results=
 	fi
 
@@ -99,13 +101,12 @@ for query in ${queries[@]}; do
 
 	# Cleanup iteration
 	if [ "$i" -ne "$nitems" ]; then
-		urls+=$(extract "$query" "$i" $(($nitems-$i)) )
+		urls+=$(extract "$query" "$i" "$(($nitems-$i))" )
 	fi
 
 	if [ -n "$urls" ]; then
 		echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> queries/"$query".txt
 	fi
-	printf "100%%%s\n" "$cached_results"
+	printf "100%% %s\n" "$cached_results"
 done
-
 
