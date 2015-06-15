@@ -57,14 +57,16 @@ for query in ${queries[@]}; do
 	# If no cached results, i == "" which counts as 0
 	if [ "$CACHE" = "true" ]; then
 		i=$(wc -l queries/"$query".txt 2>/dev/null | awk '{print $1}')
+		cached_results="($i results cached)"
 	else
 		i=0
 		rm -f queries/"$query".txt 2>/dev/null
+		cached_results=
 	fi
 
 
 	urls=""
-	for ((; i < (nitems-8) && i <= 56; i+=8)); do
+	for ((; i < nitems-8; i+=8)); do
 		# Loading percent
 		percent=$(bc <<< "scale = 3; $i/$nitems*100" | awk -F. '{print $1}')
 		printf "%.0f%%" $percent
@@ -77,10 +79,14 @@ for query in ${queries[@]}; do
 	done
 
 	# Cleanup iteration
-	[ "$i" = "$nitems" ] || urls+=$(extract "$query" "$i" $(($nitems-$i)) )
+	if [ "$i" -ne "$nitems" ]; then
+		urls+=$(extract "$query" "$i" $(($nitems-$i)) )
+	fi
 
-	echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> queries/"$query".txt
-	printf "100%%\n"
+	if [ -n "$urls" ]; then
+		echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> queries/"$query".txt
+	fi
+	printf "100%%%s\n" "$cached_results"
 done
 
 
