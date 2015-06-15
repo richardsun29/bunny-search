@@ -10,6 +10,10 @@ declare -a queries=('bunny' 'rabbit' 'cute bunny' 'bunny gif')
 nitems=100
 [ "$nitems" -gt 64 ] && nitems=64
 
+# Set up working directory
+cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)"
+! [ -d "queries/" ] && mkdir queries/
+
 # Command line arguments
 CACHE=true
 if ! options=$(getopt -o f -l force-refresh -- "$@"); then
