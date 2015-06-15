@@ -8,7 +8,7 @@ declare -a queries=('bunny' 'rabbit' 'cute bunny' 'bunny gif')
 # Rounds to a multiple of 8
 # Maximum: 64
 nitems=100
-[ $nitems -gt 64 ] && nitems=64
+[ "$nitems" -gt 64 ] && nitems=64
 
 # Command line arguments
 CACHE=true
@@ -38,9 +38,16 @@ done
 #-e 's/#/%23/g'
 #-e 's/%/%25/g'
 
-#echo ${queries[@]}
 
-#curl -s "http://ajax.googleapis.com/ajax/services/search/images?q=cute%20bunny&v=1.0&start=0&rsz=8" | sed 's/,/\n/g' | grep unescapedUrl | awk -F'"' '{print $4}'
+# Returns Google Search API's response
+# Arguments:
+# $1: query
+# $2: starting index (max 64 - $3)
+# $3: number of results (max 8)
+extract() {
+		echo $(curl -s "http://ajax.googleapis.com/ajax/services/search/images?q=$1&v=1.0&start=$2&rsz=$3" | 
+				sed 's/,/\n/g' | grep unescapedUrl | awk -F'"' '{print $4}')
+}
 
 # Get image URLs
 for query in ${queries[@]}; do
@@ -57,26 +64,22 @@ for query in ${queries[@]}; do
 
 
 	urls=""
-	for ((; i < nitems && i <= 56; i+=8)); do
+	for ((; i < (nitems-8) && i <= 56; i+=8)); do
 		# Loading percent
 		percent=$(bc <<< "scale = 3; $i/$nitems*100" | awk -F. '{print $1}')
 		printf "%.0f%%" $percent
 
 		# Extract URLs
-		urls+=$(curl -s "http://ajax.googleapis.com/ajax/services/search/images?q=$query&v=1.0&start=$i&rsz=8" | 
-				sed 's/,/\n/g' | grep unescapedUrl | awk -F'"' '{print $4}')
-		urls+=" "
+		urls+="$(extract $query $i 8) "
 
-#		[ $percent -ne 0 ] && printf "\b\b"
-#		[ $percent -ge 10 ] && printf "\b"
-		if [ $percent -lt 10 ]; then
-			printf "\b\b"
-		else
-			printf "\b\b\b"
-		fi
+		# Erase current percentage
+		[ $percent -lt 10 ] && printf "\b\b" || printf "\b\b\b"
 	done
 
-	echo "$urls" | sed 's/ /\n/g' >> queries/"$query".txt
+	# Cleanup iteration
+	[ "$i" = "$nitems" ] || urls+=$(extract "$query" "$i" $(($nitems-$i)) )
+
+	echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> queries/"$query".txt
 	printf "100%%\n"
 done
 
