@@ -14,19 +14,29 @@ nitems=100
 cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)"
 ! [ -d "queries/" ] && mkdir queries/
 
+HELP() {
+echo "Usage: geturls.sh [OPTIONS] [QUERY] ... 
+Retrieve a lists of URLs for each query.
+Options:
+  -f, --force-refresh       Overwrite cached results
+  -h, --help                Show this help text
+"
+}
+
 # Command line arguments
-CACHE=true
-if ! options=$(getopt -o f -l force-refresh -- "$@"); then
-	# TODO: add help text
+USE_CACHE=true
+if ! options=$(getopt -o fh -l force-refresh,help -- "$@"); then
+	HELP
 	exit 1;
 fi
 eval set -- $options
 while [ $# -gt 0 ]; do
 	case "$1" in
-		-f | --force-refresh) CACHE=false;;
-		(--) shift; break;;
+		-f | --force-refresh) USE_CACHE=false;;
+		-h | --help) HELP; exit 0;;
+		(--) ;;
 		(-*) echo "$0: unrecognized option $1" 1>&2; exit 1;;
-		(*) break;;
+		(*) queries[${#queries[@]}]="$1";;
 	esac
 	shift
 done
@@ -55,13 +65,12 @@ extract() {
 
 # Get image URLs
 for query in ${queries[@]}; do
-	printf "Retrieving search results for %s..." $query
+	printf "Retrieving results for \'%s\'..." $query
 
-	# Cache results unless --force-refresh
-	# If no cached results, i == "" which counts as 0
-	if [ "$CACHE" = "true" ]; then
+	# Cache results
+	if [[ "$USE_CACHE" = "true" && -f queries/"$query".txt ]]; then
 		i=$(wc -l queries/"$query".txt 2>/dev/null | awk '{print $1}')
-		cached_results="($i results cached)"
+		cached_results=" ($i cached)"
 	else
 		i=0
 		rm -f queries/"$query".txt 2>/dev/null
@@ -79,7 +88,7 @@ for query in ${queries[@]}; do
 		urls+="$(extract $query $i 8) "
 
 		# Erase current percentage
-		[ $percent -lt 10 ] && printf "\b\b" || printf "\b\b\b"
+		[ "$percent" -lt 10 ] && printf "\b\b" || printf "\b\b\b"
 	done
 
 	# Cleanup iteration
