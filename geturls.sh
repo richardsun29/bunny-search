@@ -87,16 +87,19 @@ for query in ${queries[@]}; do
 
 
 	urls=""
+	pcnt=
 	for ((; i < nitems-8; i+=8)); do
 		# Loading percent
-		percent=$(bc <<< "scale = 3; $i/$nitems*100" | awk -F. '{print $1}')
-		printf "%.0f%%" $percent
+		pcnt=$(bc <<< "scale = 3; $i/$nitems*100" | awk -F. '{print $1}')
+		printf "%.0f%%" $pcnt
 
 		# Extract URLs
 		urls+="$(extract $query $i 8) "
 
 		# Erase current percentage
-		[ "$percent" -lt 10 ] && printf "\b\b" || printf "\b\b\b"
+		if [[ $(($i+16)) -lt $nitems ]]; then
+			[[ "$pcnt" -lt 10 ]] && printf "\b\b" || printf "\b\b\b"
+		fi
 	done
 
 	# Cleanup iteration
@@ -104,9 +107,13 @@ for query in ${queries[@]}; do
 		urls+=$(extract "$query" "$i" "$(($nitems-$i))" )
 	fi
 
+	# Write to file
 	if [ -n "$urls" ]; then
 		echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> queries/"$query".txt
 	fi
+
+	# 100%
+	[[ "$pcnt" -lt 10 ]] && printf "\b\b" || printf "\b\b\b"
 	printf "100%% %s\n" "$cached_results"
 done
 
@@ -116,3 +123,4 @@ for((i = 0; i < ${#queries[@]}; i++)); do
 	filenames[$i]=queries/"${queries[$i]}".txt
 done
 cat ${filenames[@]} | sort | uniq > urls.txt
+
