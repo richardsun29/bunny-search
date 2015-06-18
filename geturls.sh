@@ -124,3 +124,6 @@ for((i = 0; i < ${#queries[@]}; i++)); do
 done
 cat ${filenames[@]} | sort | uniq > urls.txt
 
+# Generate HTML file
+./to-html < urls.txt > all-images.html
+
