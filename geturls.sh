@@ -110,3 +110,9 @@ for query in ${queries[@]}; do
 	printf "100%% %s\n" "$cached_results"
 done
 
+
+# Compile list
+for((i = 0; i < ${#queries[@]}; i++)); do
+	filenames[$i]=queries/"${queries[$i]}".txt
+done
+cat ${filenames[@]} | sort | uniq > urls.txt
