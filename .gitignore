@@ -1,3 +1,4 @@
 *.swp
-*.txt
-queries/
+data/
+bin/
+obj/

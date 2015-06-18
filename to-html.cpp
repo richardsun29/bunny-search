@@ -11,11 +11,11 @@ int main(int argc, char* argv[])
 	<head>\n\
 		<title></title>\n\
 	</head>\n\
-	<body>\n\
+	<body>\
 ");
 
 	string url;
-	for(int k = 0; k < 10; k++) {
+	for(int k = 0; k < 30; k++) {
 		getline(cin, url);
 		cout << "<img src=\"" << url << "\" />\n";
 	}

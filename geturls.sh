@@ -5,7 +5,11 @@
 
 # Set up working directory
 cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)" # pwd -> git repo's root
-! [ -d "queries/" ] && mkdir queries/
+mkdir -p data/queries/
+mkdir -p data/html/
+
+
+
 
 HELP() {
 echo "Usage: geturls.sh [OPTIONS] [QUERY] ... 
@@ -32,7 +36,7 @@ while [ $# -gt 0 ]; do
 		-c | --count) 
 			nitems="$2"
 			shift
-			if [[ ! $nitems =~ ^[0-9]+$ ]]; then
+			if [[ ! $nitems =~ ^[0-9]+$ ]]; then # NaN
 				echo "geturls: --count: invalid results count: $nitems" >&2
 				exit 1
 			fi
@@ -76,17 +80,17 @@ for query in ${queries[@]}; do
 	printf "Retrieving results for \'%s\'..." $query
 
 	# Cache results
-	if [[ "$USE_CACHE" = "true" && -f queries/"$query".txt ]]; then
-		i=$(wc -l queries/"$query".txt 2>/dev/null | awk '{print $1}')
+	if [[ "$USE_CACHE" = "true" && -f data/queries/"$query".txt ]]; then
+		i=$(wc -l data/queries/"$query".txt 2>/dev/null | awk '{print $1}')
 		cached_results="($i cached)"
 	else
-		rm -f queries/"$query".txt 2>/dev/null
+		rm -f data/queries/"$query".txt 2>/dev/null
 		i=0
 		cached_results=
 	fi
 
 
-	urls=""
+	urls=
 	pcnt=
 	for ((; i < nitems-8; i+=8)); do
 		# Loading percent
@@ -109,7 +113,7 @@ for query in ${queries[@]}; do
 
 	# Write to file
 	if [ -n "$urls" ]; then
-		echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> queries/"$query".txt
+		echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> data/queries/"$query".txt
 	fi
 
 	# 100%
@@ -120,10 +124,13 @@ done
 
 # Compile list
 for((i = 0; i < ${#queries[@]}; i++)); do
-	filenames[$i]=queries/"${queries[$i]}".txt
+	filenames[$i]=data/queries/"${queries[$i]}".txt
 done
-cat ${filenames[@]} | sort | uniq > urls.txt
+#cat ${filenames[@]} | sort | uniq > data/urls.txt
+cat ${filenames[@]} > data/urls.txt
 
 # Generate HTML file
-./to-html < urls.txt > all-images.html
+echo "Generating html file..."
+make -s to-html
+bin/to-html < data/urls.txt > data/html/all-images.html
 
