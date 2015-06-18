@@ -10,14 +10,19 @@ int main(int argc, char* argv[])
 <html>\n\
 	<head>\n\
 		<title></title>\n\
+		<style>\n\
+		img {\n\
+			width: 33%;\n\
+		}\n\
+		</style>\n\
 	</head>\n\
 	<body>\
 ");
 
 	string url;
-	for(int k = 0; k < 30; k++) {
+	for(int k = 0; k < 10; k++) {
 		getline(cin, url);
-		cout << "<img src=\"" << url << "\" />\n";
+		cout << "\t\t<img src=\"" << url << "\" />\n";
 	}
 
 	puts("\
