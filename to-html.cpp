@@ -5,14 +5,28 @@
 #include <cstdlib>
 using namespace std;
 
+string title;
+bool allImages = false;
+int imageCount = 9;
+
+char script[] = "\
+		<script src=\"lib/jquery.js\"></script>\n\
+		<script>\n\
+			$(document).ready(function() {\n\
+				var rand = Math.floor(Math.random() * $('img').length);\n\
+				$('img').hide().eq(rand).show();\n\
+			});\n\
+		</script>\n\
+";
+
 static struct option options[] =
 	{
+		{"all",   no_argument,       0, 'a'},
 		{"title", required_argument, 0, 't'}
 	};
 
 int main(int argc, char* argv[])
 {
-	string title;
 	int c;
 	int option_index = 0;
 	while((c = getopt_long (argc, argv, "t:", 
@@ -20,6 +34,9 @@ int main(int argc, char* argv[])
 	{
 		switch(c)
 		{
+			case 'a': 
+				allImages = true;
+				break;
 			case 't':
 				title = optarg;
 				break;
@@ -40,9 +57,10 @@ int main(int argc, char* argv[])
 			width: 33%%;\n\
 		}\n\
 		</style>\n\
+		%s\
 	</head>\n\
 	<body>\n\
-", title.c_str());
+", title.c_str(), allImages ? "" : script);
 
 	string url;
 	for(int k = 0; k < 9; k++) {
