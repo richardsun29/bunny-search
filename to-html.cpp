@@ -32,7 +32,7 @@ void print_script()
 			];\n\
 			$(document).ready(function() {\n\
 				var rand = Math.floor(Math.random() * urls.length);\n\
-				$('img').replaceWith(\"<img src='\" + urls[rand] + \"'>\");\n\
+				$('img').replaceWith(\"<a href='rand.html'><img src='\" + urls[rand] + \"'></a>\");\n\
 			});\n\
 		</script>\n\
 ");
