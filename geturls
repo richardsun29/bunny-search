@@ -136,5 +136,5 @@ cat ${filenames[@]} > data/urls.txt
 echo "Generating html file..."
 [[ -z "$title" ]] && title=$(echo ${queries[@]} | sed 's/ / | /g' | sed 's/%20/ /g')
 make -s to-html
-bin/to-html --title "$title" < data/urls.txt > data/html/all-images.html
+bin/to-html --title "$title" < data/urls.txt > all-images.html
 
