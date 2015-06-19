@@ -19,6 +19,7 @@ Mandatory arguments to long options are mandatory for short options too.
   -c, --count=NUM           Number of results for each query (max: 64)
   -f, --force-refresh       Overwrite cached results
   -h, --help                Show this help text
+  -n, --no-html             Only compile URL list; do not generate html
   -t, --title=STRING        Title of the generated webpage
 "
 }
@@ -27,7 +28,8 @@ Mandatory arguments to long options are mandatory for short options too.
 USE_CACHE=true
 nitems=64
 title=
-if ! options=$(getopt -o c:fht: -l count:,force-refresh,help,title: -- "$@"); then
+generate_html=true
+if ! options=$(getopt -o c:fhnt: -l count:,force-refresh,help,no-html,title: -- "$@"); then
 	HELP
 	exit 1;
 fi
@@ -49,6 +51,7 @@ while [ $# -gt 0 ]; do
 			;;
 		-f | --force-refresh) USE_CACHE=false;;
 		-h | --help) HELP; exit 0;;
+		-n | --no-html) generate_html=false;;
 		-t | --title) title="$2"; shift;;
 		(--) ;;
 		(-*) echo "$0: unrecognized option $1" >&2; exit 1;;
@@ -62,9 +65,9 @@ if [ ${#queries[@]} -eq 0 ]; then
 	echo "geturls: no queries. Exiting." >&2
 	exit 1
 fi
-# Replace spaces with URL escape characters
+# Replace spaces with URL escape characters, trim whitespace
 for ((i = 0; i < ${#queries[@]}; i++)); do
-	queries["$i"]=$(echo "${queries[$i]}" | sed -e 's/ /%20/g')
+	queries["$i"]=$(echo "${queries[$i]}" | sed -e 's/^ //' -e 's/ $//' -e 's/ /%20/g')
 done
 
 
@@ -133,9 +136,10 @@ done
 cat ${filenames[@]} > data/urls.txt
 
 # Generate HTML file
-echo "Generating html file..."
-[[ -z "$title" ]] && title=$(echo ${queries[@]} | sed 's/ / | /g' | sed 's/%20/ /g')
-make -s to-html
-bin/to-html --title "$title" --all < data/urls.txt > all-images.html
-bin/to-html --title "$title" < data/urls.txt > rand.html
-
+if [ "$generate_html" = "true" ]; then
+	echo "Generating html file..."
+	[[ -z "$title" ]] && title=$(echo ${queries[@]} | sed 's/ / | /g' | sed 's/%20/ /g')
+	make -s to-html
+	bin/to-html --title "$title" --all < data/urls.txt > all-images.html
+	bin/to-html --title "$title" < data/urls.txt > rand.html
+fi
