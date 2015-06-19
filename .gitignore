@@ -1,0 +1,8 @@
+*.swp
+data/
+bin/
+obj/
+lib/
+save/
+rand.html
+grid.html
