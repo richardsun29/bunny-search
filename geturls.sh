@@ -19,13 +19,15 @@ Mandatory arguments to long options are mandatory for short options too.
   -c, --count=NUM           Number of results for each query (max: 64)
   -f, --force-refresh       Overwrite cached results
   -h, --help                Show this help text
+  -t, --title=STRING        Title of the generated webpage
 "
 }
 
 # Command line arguments
 USE_CACHE=true
 nitems=64
-if ! options=$(getopt -o c:fh -l count:,force-refresh,help -- "$@"); then
+title=
+if ! options=$(getopt -o c:fht: -l count:,force-refresh,help,title: -- "$@"); then
 	HELP
 	exit 1;
 fi
@@ -47,6 +49,7 @@ while [ $# -gt 0 ]; do
 			;;
 		-f | --force-refresh) USE_CACHE=false;;
 		-h | --help) HELP; exit 0;;
+		-t | --title) title="$2"; shift;;
 		(--) ;;
 		(-*) echo "$0: unrecognized option $1" >&2; exit 1;;
 		(*) queries[${#queries[@]}]="$1";;
@@ -131,6 +134,7 @@ cat ${filenames[@]} > data/urls.txt
 
 # Generate HTML file
 echo "Generating html file..."
+[[ -z "$title" ]] && title=$(echo ${queries[@]} | tr " " "|" | sed 's/%20/ /g')
 make -s to-html
-bin/to-html < data/urls.txt > data/html/all-images.html
+bin/to-html --title "$title" < data/urls.txt > data/html/all-images.html
 
