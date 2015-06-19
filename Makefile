@@ -12,3 +12,8 @@ to-html: to-html.o
 clean:
 	rm -f obj/*.o bin/* *.o
 
+# Cleans all binaries and clears cache
+purge: clean
+	rm -f data/html/*
+	rm -f data/queries/*
+	rm -f data/urls.txt
