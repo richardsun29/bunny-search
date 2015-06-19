@@ -14,4 +14,4 @@ clean:
 
 # Cleans all binaries and clears cache
 purge: clean
-	rm -f data/queries/* data/urls.txt all-images.html rand.html
+	rm -f data/queries/* data/urls.txt grid.html rand.html

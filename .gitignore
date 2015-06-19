@@ -3,5 +3,6 @@ data/
 bin/
 obj/
 lib/
+save/
 rand.html
-all-images.html
+grid.html
