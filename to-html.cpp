@@ -9,21 +9,34 @@ string title;
 bool allImages = false;
 int imageCount = 9;
 
-char script[] = "\
-		<script src=\"lib/jquery.js\"></script>\n\
-		<script>\n\
-			$(document).ready(function() {\n\
-				var rand = Math.floor(Math.random() * $('img').length);\n\
-				$('img').hide().eq(rand).show();\n\
-			});\n\
-		</script>\n\
-";
 
 static struct option options[] =
 	{
 		{"all",   no_argument,       0, 'a'},
 		{"title", required_argument, 0, 't'}
 	};
+
+void print_script()
+{
+	printf("\
+		<script src=\"lib/jquery.js\"></script>\n\
+		<script>\n\
+		var urls = [\n\
+");
+
+	string url;
+	while(getline(cin, url))
+		printf("\t\t\t\t\"%s\",\n", url.c_str());
+
+	printf("\
+			];\n\
+			$(document).ready(function() {\n\
+				var rand = Math.floor(Math.random() * urls.length);\n\
+				$('img').replaceWith(\"<img src='\" + urls[rand] + \"'>\");\n\
+			});\n\
+		</script>\n\
+");
+}
 
 int main(int argc, char* argv[])
 {
@@ -57,15 +70,24 @@ int main(int argc, char* argv[])
 			width: 33%%;\n\
 		}\n\
 		</style>\n\
-		%s\
+", title.c_str());
+
+	if(!allImages)
+		print_script();
+
+	printf("\
 	</head>\n\
 	<body>\n\
-", title.c_str(), allImages ? "" : script);
+");
 
 	string url;
-	for(int k = 0; k < 9; k++) {
-		getline(cin, url);
-		printf("\t\t<img src=\"%s\" />\n", url.c_str());
+	if(allImages){
+		for(int k = 0; k < imageCount; k++) {
+			getline(cin, url);
+			printf("\t\t<img src=\"%s\" />\n", url.c_str());
+		}
+	} else {
+		printf("\t\t<img src=\"random\">\n");
 	}
 
 	puts("\
