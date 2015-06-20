@@ -1,18 +1,12 @@
 #!/bin/bash
 
-# Array of queries to search
-#declare -a queries=('bunny' 'rabbit' 'cute bunny' 'bunny gif')
-
 # Set up working directory
 cd "$(dirname "${BASH_SOURCE[0]}")" && cd "$(git rev-parse --show-toplevel)" # pwd -> git repo's root
-mkdir -p data/queries/
-mkdir -p data/html/
-mkdir bin/
-mkdir obj/
+mkdir -p queries/ html/ bin/ obj/ 2>/dev/null
 
 
 HELP() {
-echo "Usage: geturls.sh [OPTIONS] [QUERY] ... 
+echo "Usage: geturls [OPTIONS] [QUERY] ... 
 Retrieve a lists of URLs for each QUERY.
 
 Mandatory arguments to long options are mandatory for short options too.
@@ -86,11 +80,11 @@ for query in ${queries[@]}; do
 	printf "Retrieving results for \'%s\'..." $query
 
 	# Cache results
-	if [[ "$USE_CACHE" = "true" && -f data/queries/"$query".txt ]]; then
-		i=$(wc -l data/queries/"$query".txt 2>/dev/null | awk '{print $1}')
+	if [[ "$USE_CACHE" = "true" && -f queries/"$query".txt ]]; then
+		i=$(wc -l queries/"$query".txt 2>/dev/null | awk '{print $1}')
 		cached_results="($i cached)"
 	else
-		rm -f data/queries/"$query".txt 2>/dev/null
+		rm -f queries/"$query".txt 2>/dev/null
 		i=0
 		cached_results=
 	fi
@@ -113,13 +107,13 @@ for query in ${queries[@]}; do
 	done
 
 	# Cleanup iteration
-	if [ "$i" -ne "$nitems" ]; then
+	if [[ "$USE_CACHE" = false && "$i" -lt "$nitems" ]]; then
 		urls+=$(extract "$query" "$i" "$(($nitems-$i))" )
 	fi
 
 	# Write to file
 	if [ -n "$urls" ]; then
-		echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> data/queries/"$query".txt
+		echo "$urls" | sed -e 's/\s*$//' -e 's/ /\n/g' >> queries/"$query".txt
 	fi
 
 	# 100%
@@ -130,16 +124,29 @@ done
 
 # Compile list
 for((i = 0; i < ${#queries[@]}; i++)); do
-	filenames[$i]=data/queries/"${queries[$i]}".txt
+	filenames[$i]=queries/"${queries[$i]}".txt
 done
-#cat ${filenames[@]} | sort | uniq > data/urls.txt
-cat ${filenames[@]} > data/urls.txt
+#cat ${filenames[@]} | sort | uniq > urls.txt
+cat ${filenames[@]} > urls.txt
 
 # Generate HTML file
-if [ "$generate_html" = "true" ]; then
-	echo "Generating html file..."
+if $generate_html; then
 	[[ -z "$title" ]] && title=$(echo ${queries[@]} | sed 's/ / | /g' | sed 's/%20/ /g')
 	make -s to-html
-	bin/to-html --title "$title" --all < data/urls.txt > grid.html
-	bin/to-html --title "$title" < data/urls.txt > rand.html
+
+	filepath=$(echo "html/"$title"_grid.html" | sed -e 's/ | /_/g' -e 's/ /-/g')
+	if [[ "$USE_CACHE" = true  && -f "$filepath" ]]; then
+		echo "$filepath cached"
+	else
+		echo "Generating $filepath..."
+		bin/to-html --title "$title" --all < urls.txt > $filepath
+	fi
+
+	filepath=$(echo "html/"$title"_rand.html" | sed -e 's/ | /_/g' -e 's/ /-/g')
+	if [[ "$USE_CACHE" = true  && -f "$filepath" ]]; then
+		echo "$filepath cached"
+	else
+		echo "Generating $filepath..."
+		bin/to-html --title "$title" < urls.txt > $filepath
+	fi
 fi

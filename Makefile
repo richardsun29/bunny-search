@@ -7,11 +7,17 @@ to-html: to-html.o
 	$(CC) $(CFLAGS) obj/$^ -o bin/$@
 
 %.o: %.cpp
-	$(CC) -c $(CFLAGS) $< -o obj/$@
+	$(CC) -c $(CFLAGS) $< -o bin/$@
 
 clean:
-	rm -f obj/*.o bin/* *.o
+	rm -f bin/*
+
+clear-html:
+	rm -f html/*
+
+clear-queries:
+	rm -f queries/*
 
 # Cleans all binaries and clears cache
-purge: clean
-	rm -f data/queries/* data/urls.txt grid.html rand.html
+purge: clean clear-html clear-queries
+

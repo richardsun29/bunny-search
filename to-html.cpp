@@ -19,7 +19,7 @@ static struct option options[] =
 void print_script()
 {
 	printf("\
-		<script src=\"lib/jquery.js\"></script>\n\
+		<script src=\"../lib/jquery.js\"></script>\n\
 		<script>\n\
 		var urls = [\n\
 ");
@@ -32,7 +32,7 @@ void print_script()
 			];\n\
 			$(document).ready(function() {\n\
 				var rand = Math.floor(Math.random() * urls.length);\n\
-				$('img').replaceWith(\"<a href='rand.html'><img src='\" + urls[rand] + \"'></a>\");\n\
+				$('img').replaceWith(\"<a href=''><img src='\" + urls[rand] + \"'></a>\");\n\
 			});\n\
 		</script>\n\
 ");
