@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
 			printf("\t\t<img src=\"%s\" />\n", url.c_str());
 		}
 	} else {
-		printf("\t\t<img src=\"random\">\n");
+		printf("\t\t<img>\n");
 	}
 
 	puts("\

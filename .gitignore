@@ -3,5 +3,6 @@ html/
 queries/
 bin/
 lib/
-save/
 urls.txt
+grid-prev.html
+rand-prev.html

@@ -150,6 +150,9 @@ if $generate_html; then
 			bin/to-html $tohtml_args < urls.txt > $filepath
 		fi
 	done
+		make clean-symlinks
+		ln -s html/"$ftitle"_grid.html grid-prev.html >/dev/null
+		ln -s html/"$ftitle"_rand.html rand-prev.html >/dev/null
 else
 	echo "Skipped generating html files"
 fi

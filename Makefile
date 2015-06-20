@@ -12,11 +12,14 @@ to-html: to-html.o
 clean:
 	rm -f bin/*
 
-clear-html:
+clean-html:
 	rm -f html/*
 
-clear-queries:
+clean-queries:
 	rm -f queries/*
+
+clean-symlinks:
+	rm -f grid-prev.html rand-prev.html
 
 # Cleans all binaries and clears cache
 purge: clean clear-html clear-queries
