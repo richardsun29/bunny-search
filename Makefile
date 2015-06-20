@@ -4,7 +4,7 @@ CFLAGS=-Wall
 all: to-html
 
 to-html: to-html.o
-	$(CC) $(CFLAGS) obj/$^ -o bin/$@
+	$(CC) $(CFLAGS) bin/$^ -o bin/$@
 
 %.o: %.cpp
 	$(CC) -c $(CFLAGS) $< -o bin/$@
