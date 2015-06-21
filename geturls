@@ -145,12 +145,12 @@ if $generate_html; then
 			echo "Generating $filepath..."
 
 			# Set arguments
-			tohtml_args="--title $title "
+			tohtml_args=
 			[[ "$filepath" = html/"$ftitle"_grid.html ]] && tohtml_args+="--all"
-			bin/to-html $tohtml_args < urls.txt > $filepath
+			bin/to-html $tohtml_args --title "$title" < urls.txt > $filepath
 		fi
 	done
-		make clean-symlinks
+		make -s clean-symlinks
 		ln -s html/"$ftitle"_grid.html grid-prev.html >/dev/null
 		ln -s html/"$ftitle"_rand.html rand-prev.html >/dev/null
 else

@@ -26,7 +26,7 @@ void print_script()
 
 	string url;
 	while(getline(cin, url))
-		printf("\t\t\t\t\"%s\",\n", url.c_str());
+		printf("\"%s\",\n", url.c_str());
 
 	printf("\
 			];\n\
