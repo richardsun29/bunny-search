@@ -4,6 +4,7 @@
 		<title>
 ===TITLE===
 		</title>
+
 		<style>
 		body {
 		}
@@ -27,27 +28,39 @@
 			text-decoration: underline;
 		}
 		</style>
+
 		<script>
 		var urls = [
 ===URLS===
 			];
 
 			function refreshImage(image) {
+				image.style.opacity = 0.5;
 				var rand = Math.floor(Math.random() * urls.length);
 				image.src = urls[rand];
+				image.onload = function() {
+					image.style.opacity = 1.0;
+				};
 			}
+
 			function removeImage(image) {
 				var prev = urls.indexOf(image.src);
-				if(prev != -1)
+				if(prev != -1 || urls.length == 1)
 					urls.splice(prev, 1);
+				if(urls.length == 0)
+					image.onerror = "";
 				refreshImage(image);
 			}
 		</script>
 	</head>
+
 	<body>
 		<div>
 			<h2>Click the image to refresh</h2>
-			<img src="" onclick="refreshImage(this);" onerror="removeImage(this)">
+
+			<img onclick="refreshImage(this)"
+				 onerror="removeImage(this)"
+				 src="">
 		</div>
 	</body>
 </html>
