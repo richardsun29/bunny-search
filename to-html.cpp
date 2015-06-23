@@ -16,34 +16,16 @@ static struct option options[] =
 		{"title", required_argument, 0, 't'}
 	};
 
-void print_script()
+void print_urls()
 {
-	printf("\
-		<script src=\"../lib/jquery.js\"></script>\n\
-		<script>\n\
-		var urls = [\n\
-");
 
-	string url;
-	while(getline(cin, url))
-		printf("\"%s\",\n", url.c_str());
-
-	printf("\
-			];\n\
-			$(document).ready(function() {\n\
-				var rand = Math.floor(Math.random() * urls.length);\n\
-				$('img').replaceWith(\"<a href=''><img src='\" + urls[rand] + \"'></a>\");\n\
-			});\n\
-		</script>\n\
-");
 }
 
 int main(int argc, char* argv[])
 {
 	int c;
 	int option_index = 0;
-	while((c = getopt_long (argc, argv, "t:", 
-					options, &option_index)) != -1)
+	while((c = getopt_long (argc, argv, "t:", options, &option_index)) != -1)
 	{
 		switch(c)
 		{
@@ -60,38 +42,5 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	printf("\
-<!DOCTYPE html>\n\
-<html>\n\
-	<head>\n\
-		<title>%s</title>\n\
-		<style>\n\
-		img {\n\
-			width: 33%%;\n\
-		}\n\
-		</style>\n\
-", title.c_str());
 
-	if(!allImages)
-		print_script();
-
-	printf("\
-	</head>\n\
-	<body>\n\
-");
-
-	string url;
-	if(allImages){
-		for(int k = 0; k < imageCount; k++) {
-			getline(cin, url);
-			printf("\t\t<img src=\"%s\" />\n", url.c_str());
-		}
-	} else {
-		printf("\t\t<img>\n");
-	}
-
-	puts("\
-	</body>\n\
-</html>\n\
-");
 }

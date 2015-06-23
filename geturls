@@ -134,26 +134,31 @@ cat ${filenames[@]} > urls.txt
 if $generate_html; then
 	# Default html title is "query1 | query2 | ..."
 	[[ -z "$title" ]] && title=$(echo ${queries[@]} | sed 's/ / | /g' | sed 's/%20/ /g')
+
+	make -s to-html clean-symlinks
+
 	# Default html filename is "query1_query-with-spaces_query3_{rand,grid}.html
 	ftitle=$(echo "$title" | sed -e 's/ | /_/g' -e 's/ /-/g')
-	make -s to-html
+	filepaths[0]=html/"$ftitle"_rand.html
+	filepaths[1]=html/"$ftitle"_grid.html
 
-	for filepath in html/"$ftitle"_{grid,rand}.html; do
+	for filepath in ${filepaths[@]}; do
 		if [[ "$USE_CACHE" = true  && -f "$filepath" ]]; then
 			echo "$filepath cached"
 		else
 			echo "Generating $filepath..."
 
 			# Set arguments
-			tohtml_args=
-			[[ "$filepath" = html/"$ftitle"_grid.html ]] && tohtml_args+="--all"
-			bin/to-html $tohtml_args --title "$title" < urls.txt > $filepath
+			tohtml_args="--title \"$title\""
+			[[ "$filepath" = ${filepaths[1]} ]] && tohtml_args+=" --all"
+			echo "$to_html_args" | xargs bin/to-html < urls.txt > $filepath
 		fi
 	done
-		make -s clean-symlinks
-		ln -s html/"$ftitle"_grid.html grid-prev.html >/dev/null
-		ln -s html/"$ftitle"_rand.html rand-prev.html >/dev/null
+		ln -s ${filepaths[0]} rand-prev.html >/dev/null
+		ln -s ${filepaths[1]} grid-prev.html >/dev/null
 else
 	echo "Skipped generating html files"
 fi
+
+exit 0
 
