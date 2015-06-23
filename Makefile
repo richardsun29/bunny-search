@@ -9,6 +9,8 @@ to-html: to-html.o
 %.o: %.cpp
 	$(CC) -c $(CFLAGS) $< -o bin/$@
 
+
+# Clean binaries and clear cache
 clean:
 	rm -f bin/*
 
@@ -21,6 +23,5 @@ clean-queries:
 clean-symlinks:
 	rm -f grid-prev.html rand-prev.html
 
-# Cleans all binaries and clears cache
-purge: clean clear-html clear-queries
+cleam-all: clean clear-html clear-queries
 
