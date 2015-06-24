@@ -1,8 +1,7 @@
 *.swp
-data/
+html/
+queries/
 bin/
-obj/
-lib/
-save/
-rand.html
-grid.html
+urls.txt
+grid-prev.html
+rand-prev.html
