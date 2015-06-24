@@ -7,7 +7,7 @@
 using namespace std;
 
 string title = "bunny-search";
-string inputFile = "urls.txt";
+string urlsFile = "urls.txt";
 string outputFile = "stdout";
 string templateFile = "template.html";
 bool allImages = false;
@@ -17,17 +17,17 @@ static struct option options[] =
 	{
 		{"all",    no_argument,       0, 'a'},
 		{"help",   no_argument,       0, 'h'},
-		{"input",  required_argument, 0, 'i'},
 		{"output", required_argument, 0, 'o'},
 		{"source", required_argument, 0, 's'},
-		{"title",  required_argument, 0, 't'}
+		{"title",  required_argument, 0, 't'},
+		{"urls",   required_argument, 0, 'u'}
 	};
 
-// Just prints the input as-is
-void printAll()
+// Read and print the input in a stream
+void printAll(istream* in)
 {
 	string line;
-	while (getline(cin, line)) 
+	while (getline(*in, line)) 
 		cout << line << endl;
 }
 
@@ -37,17 +37,17 @@ void help()
 		 << endl
 		 << "  -a, --all            Generate a grid of 9 images" << endl
 		 << "  -h, --help           Show help" << endl
-		 << "  -i, --input=FILE     Source of the image URLs (default: 'urls.txt')" << endl
 		 << "  -o, --output=FILE    Output destination (default: stdout)" << endl
 		 << "  -s, --source=FILE    Source for the html template (default: 'template.html')" << endl
-		 << "  -t, --title=STRING   Title of the html document (default: 'bunny-search')" << endl;
+		 << "  -t, --title=STRING   Title of the html document (default: 'bunny-search')" << endl
+		 << "  -u, --urls=FILE      Source of the image URLs (default: 'urls.txt')" << endl;
 }
 
 int main(int argc, char* argv[])
 {
 	int c;
 	int option_index = 0;
-	while ((c = getopt_long (argc, argv, "ahi:o:t:", 
+	while ((c = getopt_long (argc, argv, "aho:s:t:u:", 
 				options, &option_index)) != -1)
 	{
 		switch (c)
@@ -58,9 +58,6 @@ int main(int argc, char* argv[])
 			case 'h':
 				help();
 				exit(0);
-			case 'i':
-				inputFile = optarg;
-				break;
 			case 'o':
 				outputFile = optarg;
 				break;
@@ -70,37 +67,33 @@ int main(int argc, char* argv[])
 			case 't':
 				title = optarg;
 				break;
+			case 'u':
+				urlsFile = optarg;
+				break;
 			default:
 				cerr << "Unkown option -" << c << endl
 					 << "Try 'to-html --help' for more information" << endl;
 				exit(1);
-				break;
 		}
 	}
 
+
 	ios::sync_with_stdio(false);
-	// Redirect input
-	ifstream fin(inputFile.c_str());
-	if (!fin.good()) 
-	{
-		cerr << "to-html: " << inputFile << ": No such file" << endl;
-		exit(1);
-	}
-	cin.rdbuf(fin.rdbuf());
-	
 	// Redirect output
 	ofstream fout;
 	if (outputFile != "stdout") 
 	{
-		fout.open(outputFile.c_str());
-		cout.rdbuf(fout.rdbuf());
+		if (outputFile == "stderr")
+			cout.rdbuf(cerr.rdbuf());
+		else
+		{
+			fout.open(outputFile.c_str());
+			cout.rdbuf(fout.rdbuf());
+		}
 	}
-	//printAll();
-	
 
 	// Read template
 	ifstream tmplt(templateFile.c_str());
-	if(!tmplt.good()) cerr << "bad";
 	string line;
 	while (getline(tmplt, line)) 
 	{
@@ -110,17 +103,27 @@ int main(int argc, char* argv[])
 		}
 		else if (line == "===URLS===")
 		{
+			// Redirect input
+			ifstream fin(urlsFile.c_str());
+			if (!fin.good()) 
+			{
+				cerr << "to-html: " << urlsFile << ": No such file" << endl;
+				exit(1);
+			}
+
 			string url;
-			while (getline(cin, url))
+			while (getline(fin, url))
+			{
 				cout << "'" << url << "'," << endl;
+			}
+			fin.close();
 		}
 		else
 		{
 			cout << line << endl;
 		}
 	}
-
-	fin.close();
-	fout.close();
 	tmplt.close();
+
+	fout.close();
 }
