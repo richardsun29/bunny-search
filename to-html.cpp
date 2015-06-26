@@ -10,32 +10,22 @@ string title = "bunny-search";
 string urlsFile = "urls.txt";
 string outputFile = "stdout";
 string templateFile = "template.html";
-bool allImages = false;
+bool grid = false;
 int imageCount = 9;
 
-static struct option options[] =
-	{
-		{"all",    no_argument,       0, 'a'},
-		{"help",   no_argument,       0, 'h'},
-		{"output", required_argument, 0, 'o'},
-		{"source", required_argument, 0, 's'},
-		{"title",  required_argument, 0, 't'},
-		{"urls",   required_argument, 0, 'u'}
-	};
 
-// Read and print the input in a stream
-void printAll(istream* in)
-{
-	string line;
-	while (getline(*in, line)) 
-		cout << line << endl;
-}
+void printAll(istream* in);
+void fileNotFound(string filename);
+
+void printUrls();
+void printTitle();
+void printImgWidth();
 
 void help()
 {
 	cout << "to-html: Generate a html page that shows random images" << endl
 		 << endl
-		 << "  -a, --all            Generate a grid of 9 images" << endl
+		 << "  -g, --grid           Generate a grid of 9 images" << endl
 		 << "  -h, --help           Show help" << endl
 		 << "  -o, --output=FILE    Output destination (default: stdout)" << endl
 		 << "  -s, --source=FILE    Source for the html template (default: 'template.html')" << endl
@@ -43,17 +33,27 @@ void help()
 		 << "  -u, --urls=FILE      Source of the image URLs (default: 'urls.txt')" << endl;
 }
 
+static struct option options[] =
+	{
+		{"grid",    no_argument,      0, 'g'},
+		{"help",   no_argument,       0, 'h'},
+		{"output", required_argument, 0, 'o'},
+		{"source", required_argument, 0, 's'},
+		{"title",  required_argument, 0, 't'},
+		{"urls",   required_argument, 0, 'u'}
+	};
+
 int main(int argc, char* argv[])
 {
 	int c;
 	int option_index = 0;
-	while ((c = getopt_long (argc, argv, "aho:s:t:u:", 
+	while ((c = getopt_long (argc, argv, "gho:s:t:u:", 
 				options, &option_index)) != -1)
 	{
 		switch (c)
 		{
-			case 'a': 
-				allImages = true;
+			case 'g': 
+				grid = true;
 				break;
 			case 'h':
 				help();
@@ -95,37 +95,68 @@ int main(int argc, char* argv[])
 
 	// Read template
 	ifstream tmplt(templateFile.c_str());
+	if (!tmplt.good())
+		fileNotFound(templateFile);
 	string line;
 	while (getline(tmplt, line)) 
 	{
 		if (line == "===TITLE===")
-		{
-			cout << title << endl;
-		}
+			printTitle();
 		else if (line == "===URLS===")
-		{
-			// Redirect input
-			ifstream fin(urlsFile.c_str());
-			if (!fin.good()) 
-			{
-				cerr << "to-html: " << urlsFile << ": No such file" << endl;
-				exit(1);
-			}
-
-			string url;
-			while (getline(fin, url))
-			{
-				cout << "'" << url << "'," << endl;
-			}
-			fin.close();
-		}
+			printUrls();
+		else if (line == "===IMG-WIDTH===")
+			printImgWidth();
 		else
-		{
 			cout << line << endl;
-		}
 	}
 	tmplt.close();
 
 	cout.rdbuf(coutbuff);
 	fout.close();
 }
+
+void printTitle()
+{
+	cout << title << endl;
+}
+
+void printUrls()
+{
+	// Redirect input
+	ifstream fin(urlsFile.c_str());
+	if (!fin.good()) 
+		fileNotFound(urlsFile);
+
+	string url;
+	while (getline(fin, url))
+	{
+		cout << "'" << url << "'," << endl;
+	}
+	fin.close();
+}
+
+void printImgWidth()
+{
+	cout << "width: " << (grid ? "33" : "50") << "%;" << endl;
+}
+
+void fileNotFound(string filename)
+{
+	cerr << "to-html: " << filename << ": No such file" << endl;
+	exit(1);
+}
+
+// Read and print the input in a stream
+void printAll(istream* in)
+{
+	string line;
+	while (getline(*in, line)) 
+		cout << line << endl;
+}
+
+
+
+
+
+
+

@@ -150,7 +150,7 @@ if $generate_html; then
 
 			# Set arguments
 			tohtml_args="--title \"$title\" --output \"$filepath\""
-			[[ "$filepath" = ${filepaths[1]} ]] && tohtml_args+=" --all"
+			[[ "$filepath" = ${filepaths[1]} ]] && tohtml_args+=" --grid"
 			echo "$tohtml_args" | xargs bin/to-html
 		fi
 	done
