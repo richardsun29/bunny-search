@@ -6,12 +6,12 @@
 #include <cstdlib>
 using namespace std;
 
-string title = "bunny-search";
-string urlsFile = "urls.txt";
-string outputFile = "stdout";
-string templateFile = "template.html";
-bool grid = false;
-int imageCount = 9;
+string TITLE = "bunny-search";
+string URLS_FILE = "urls.txt";
+string OUTPUT_FILE = "stdout";
+string TEMPLATE_FILE = "template.html";
+bool GRID = false;
+int GRIDSIZE = 9;
 
 
 void printAll(istream* in);
@@ -20,6 +20,7 @@ void fileNotFound(string filename);
 void printUrls();
 void printTitle();
 void printImgWidth();
+void printImgTags();
 
 void help()
 {
@@ -53,22 +54,22 @@ int main(int argc, char* argv[])
 		switch (c)
 		{
 			case 'g': 
-				grid = true;
+				GRID = true;
 				break;
 			case 'h':
 				help();
 				exit(0);
 			case 'o':
-				outputFile = optarg;
+				OUTPUT_FILE = optarg;
 				break;
 			case 's':
-				templateFile = optarg;
+				TEMPLATE_FILE = optarg;
 				break;
 			case 't':
-				title = optarg;
+				TITLE = optarg;
 				break;
 			case 'u':
-				urlsFile = optarg;
+				URLS_FILE = optarg;
 				break;
 			default:
 				cerr << "Unkown option -" << c << endl
@@ -82,21 +83,21 @@ int main(int argc, char* argv[])
 	// Redirect output
 	ofstream fout;
 	streambuf * coutbuff = cout.rdbuf();
-	if (outputFile != "stdout") 
+	if (OUTPUT_FILE != "stdout") 
 	{
-		if (outputFile == "stderr")
+		if (OUTPUT_FILE == "stderr")
 			cout.rdbuf(cerr.rdbuf());
 		else
 		{
-			fout.open(outputFile.c_str());
+			fout.open(OUTPUT_FILE.c_str());
 			cout.rdbuf(fout.rdbuf());
 		}
 	}
 
 	// Read template
-	ifstream tmplt(templateFile.c_str());
+	ifstream tmplt(TEMPLATE_FILE.c_str());
 	if (!tmplt.good())
-		fileNotFound(templateFile);
+		fileNotFound(TEMPLATE_FILE);
 	string line;
 	while (getline(tmplt, line)) 
 	{
@@ -106,6 +107,8 @@ int main(int argc, char* argv[])
 			printUrls();
 		else if (line == "===IMG-WIDTH===")
 			printImgWidth();
+		else if (line == "===IMG-TAGS===")
+			printImgTags();
 		else
 			cout << line << endl;
 	}
@@ -117,15 +120,15 @@ int main(int argc, char* argv[])
 
 void printTitle()
 {
-	cout << title << endl;
+	cout << TITLE << endl;
 }
 
 void printUrls()
 {
 	// Redirect input
-	ifstream fin(urlsFile.c_str());
+	ifstream fin(URLS_FILE.c_str());
 	if (!fin.good()) 
-		fileNotFound(urlsFile);
+		fileNotFound(URLS_FILE);
 
 	string url;
 	while (getline(fin, url))
@@ -137,7 +140,14 @@ void printUrls()
 
 void printImgWidth()
 {
-	cout << "width: " << (grid ? "33" : "50") << "%;" << endl;
+	cout << "width: " << (GRID ? "33" : "50") << "%;" << endl;
+}
+
+void printImgTags()
+{
+	int imgCount = GRID ? GRIDSIZE : 1;
+	for (int k = 0; k < imgCount; k++)
+		cout << "<img src='' onclick='refreshImage(this)' onerror='removeImage(this)'>" << endl;
 }
 
 void fileNotFound(string filename)
