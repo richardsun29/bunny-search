@@ -9,9 +9,11 @@ HELP() {
 echo "Usage: geturls [OPTIONS] [QUERY] ... 
 Retrieve a lists of URLs for each QUERY.
 
+  -h, --help                Show this help text
   -c, --count=NUM           Number of results for each query (max: 64)
   -f, --force-refresh       Overwrite cached results
-  -h, --help                Show this help text
+  -g, --gif                 Filter .gif images
+  -j, --jpg                 Filter .jpg images
   -n, --no-html             Only compile URL list; do not generate html
   -t, --title=STRING        Title of the generated webpage
 "
@@ -22,7 +24,8 @@ USE_CACHE=true
 nitems=64
 title=
 generate_html=true
-if ! options=$(getopt -o c:fhnt: -l count:,force-refresh,help,no-html,title: -- "$@"); then
+extension_filter=
+if ! options=$(getopt -o c:fgjhnt: -l count:,force-refresh,gif,jpg,help,no-html,title: -- "$@"); then
 	HELP
 	exit 1;
 fi
@@ -30,6 +33,7 @@ eval set -- $options
 
 while [ $# -gt 0 ]; do
 	case "$1" in
+		-h | --help) HELP; exit 0;;
 		-c | --count) 
 			nitems="$2"
 			shift
@@ -43,7 +47,8 @@ while [ $# -gt 0 ]; do
 			fi
 			;;
 		-f | --force-refresh) USE_CACHE=false;;
-		-h | --help) HELP; exit 0;;
+		-g | --gif) extension_filter="\.gif";;
+		-j | --jpg) extension_filter="\.jpg";;
 		-n | --no-html) generate_html=false;;
 		-t | --title) title="$2"; shift;;
 		(--) ;;
@@ -127,8 +132,9 @@ done
 for((i = 0; i < ${#queries[@]}; i++)); do
 	filenames[$i]=queries/"${queries[$i]}".txt
 done
-#cat ${filenames[@]} | sort | uniq > urls.txt
-cat ${filenames[@]} > urls.txt
+
+cat ${filenames[@]} | grep "$extension_filter" | 
+	sort | uniq > urls.txt
 
 # Generate HTML file
 if $generate_html; then
@@ -143,16 +149,12 @@ if $generate_html; then
 	filepaths[1]=html/"$ftitle"_grid.html
 
 	for filepath in ${filepaths[@]}; do
-		if [[ "$USE_CACHE" = true  && -f "$filepath" ]]; then
-			echo "$filepath cached"
-		else
-			echo "Generating $filepath..."
+		echo "Generating $filepath..."
 
-			# Set arguments
-			tohtml_args="--title \"$title\" --output \"$filepath\""
-			[[ "$filepath" = ${filepaths[1]} ]] && tohtml_args+=" --grid"
-			echo "$tohtml_args" | xargs bin/to-html
-		fi
+		# Set arguments
+		tohtml_args="--title \"$title\" --output \"$filepath\""
+		[[ "$filepath" = ${filepaths[1]} ]] && tohtml_args+=" --grid"
+		echo "$tohtml_args" | xargs bin/to-html
 	done
 		ln -s ${filepaths[0]} rand-prev.html >/dev/null
 		ln -s ${filepaths[1]} grid-prev.html >/dev/null
