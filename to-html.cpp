@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
 	ios::sync_with_stdio(false);
 	// Redirect output
 	ofstream fout;
+	streambuf * coutbuff = cout.rdbuf();
 	if (outputFile != "stdout") 
 	{
 		if (outputFile == "stderr")
@@ -125,5 +126,6 @@ int main(int argc, char* argv[])
 	}
 	tmplt.close();
 
+	cout.rdbuf(coutbuff);
 	fout.close();
 }
