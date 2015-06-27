@@ -19,7 +19,7 @@ void fileNotFound(string filename);
 
 void printUrls();
 void printTitle();
-void printImgWidth();
+void printImgCSS();
 void printImgTags();
 
 void help()
@@ -105,8 +105,8 @@ int main(int argc, char* argv[])
 			printTitle();
 		else if (line == "===URLS===")
 			printUrls();
-		else if (line == "===IMG-WIDTH===")
-			printImgWidth();
+		else if (line == "===IMG-CSS===")
+			printImgCSS();
 		else if (line == "===IMG-TAGS===")
 			printImgTags();
 		else
@@ -138,9 +138,12 @@ void printUrls()
 	fin.close();
 }
 
-void printImgWidth()
+void printImgCSS()
 {
-	cout << "width: " << (GRID ? "33" : "50") << "%;" << endl;
+	if (GRID)
+		cout << "width: 33%;" << endl;
+	else 
+		cout << "width: 50%;\ndisplay: block;" << endl;
 }
 
 void printImgTags()
@@ -163,10 +166,4 @@ void printAll(istream* in)
 	while (getline(*in, line)) 
 		cout << line << endl;
 }
-
-
-
-
-
-
 
